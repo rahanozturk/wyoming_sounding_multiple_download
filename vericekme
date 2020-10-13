@@ -1,0 +1,34 @@
+import pandas as pd
+import datetime
+from siphon.simplewebservice.wyoming import WyomingUpperAir
+import pytz
+
+
+def vericekme(station, bsaat, bgun, bay, byil, ssaat, sgun, say, syil, indir):
+
+    konum = indir+'wyomingstation'+station+'.csv'
+    df = pd.DataFrame()
+    btarih = datetime.datetime(byil, bay, bgun, bsaat)
+    tariharalik = datetime.timedelta(hours=12)
+    starih = datetime.datetime(syil, say, sgun, ssaat) + tariharalik
+    while btarih < starih:
+        tarih = (btarih.strftime('%Y, %B, %d, %H')+'Z')
+        df2 = pd.DataFrame()
+        try:
+            df2 = WyomingUpperAir.request_data(btarih, station)
+            hourtime = [tariharalik]*df2.shape[0]
+            df2['hourtime'] = hourtime
+            print('available     :'+tarih)
+        except:
+            print('no data on   :'+tarih)  
+        df = pd.concat([df, df2])
+        btarih = btarih + tariharalik
+        
+    df.to_csv(konum)
+    
+ 
+#           vericekme('station name', first hour, first day, first month,  first year, last hour, last day, last month,  last year,        download location)
+#example:   vericekme(       '17220',          0,         1,           1,        1975,        12,        1,          1,       2020,      'D:\\wyomingveri\\')
+  
+
+vericekme('17351', 0, 1, 1, 2000, 12, 1, 10, 2020, 'D:\\wyomingveri\\')
